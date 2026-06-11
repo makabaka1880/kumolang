@@ -24,7 +24,7 @@ The parser, interpreter, operational semantics, and provenance model are all leg
 * Provenance extraction
 * Dependency graph generation
 * Allergen tracing
-* Culinary genealogy analysis through graph matching
+* Culinary genealogy analysis through graph matching (TODO)
 
 ## Installation
 
