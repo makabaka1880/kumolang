@@ -25,7 +25,7 @@ The authors thank KumoKumo for producing the Basque cheesecakes that inspired th
   \and
   Jack Z. \\
   \and
-  Chimi H. \\
+  Hachimi R. \\
 }
 \usepackage{amsmath, amssymb, amsthm}
 \usepackage{listings}
@@ -43,7 +43,7 @@ The authors thank KumoKumo for producing the Basque cheesecakes that inspired th
 \begin{document}
 \maketitle
 \begin{abstract}
-    We present \textbf{KumoLang}, a purely imperative specification language and verification framework that formalizes culinary execution procedures through linear state transitions and structural correctness-by-construction. Unlike traditional stateful architectures that rely on decoupled static analysis or complex reference counting, the operational semantics of KumoLang inherently guarantee a well-formed, acyclic dependency trace during runtime evaluation. We formalize the core syntax and execution state through a list-monad architecture: raw components are lifted into isolated container types via a monadic \text{\texttt{prep}} constructor, combined symmetrically via an endomorphic \text{\texttt{pour}} operator, and transitioned across distinct nominal domains using a type-lifting \text{\texttt{pour-out}} functor. Because the structural rules of the calculus strictly forbid invalid resource configurations, ill-formed physical configurations—such as domain cross-contamination or unbound variable references—are rendered completely unrepresentable. This tight coupling of language semantics and safety invariants allows the framework to enforce absolute domain boundaries natively, ensuring the deterministic, verified synthesis of a target KumoKumo Basque pastry specification with zero compilation or runtime verification overhead.
+    We present \textbf{KumoLang}, a purely imperative specification language and verification framework that formalizes culinary execution procedures through linear state transitions and structural correctness-by-construction, and an proof-of-concept verification engine in Rust (\url{https://github.com/makabaka1880/kumolang}). Unlike traditional stateful architectures that rely on decoupled static analysis or complex reference counting, the operational semantics of KumoLang inherently guarantee a well-formed, acyclic dependency trace during runtime evaluation. We formalize the core syntax and execution state through a list-monad architecture: raw components are lifted into isolated container types via a monadic \text{\texttt{prep}} constructor, combined symmetrically via an endomorphic \text{\texttt{pour}} operator, and transitioned across distinct nominal domains using a type-lifting \text{\texttt{pour-out}} functor. Because the structural rules of the calculus strictly forbid invalid resource configurations, ill-formed physical configurations—such as domain cross-contamination or unbound variable references—are rendered completely unrepresentable. This tight coupling of language semantics and safety invariants allows the framework to enforce absolute domain boundaries natively, ensuring the deterministic, verified synthesis of a target KumoKumo Basque pastry specification with zero compilation or runtime verification overhead.
 \end{abstract}
 
 % --- SECTION 1: INTRODUCTION ---
