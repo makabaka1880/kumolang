@@ -49,17 +49,19 @@ cat recipe.kumo | cargo run
 ## Example
 
 ```lisp
-(new-mixture BaseMix)
-(new-mixture BakeMix)
+(begin
+    (new-mixture BaseMix)
+    (new-mixture BakeMix)
 
-(prep c_cheese BaseMix)
-(prep c_sugar BaseMix)
+    (prep c_cheese BaseMix)
+    (prep c_sugar BaseMix)
 
-(pour c_bowl c_cheese c_sugar)
+    (pour c_bowl c_cheese c_sugar)
 
-(pour-out c_cake c_bowl BakeMix)
+    (pour-out c_cake c_bowl BakeMix)
 
-(skip)
+    (skip)
+)
 ```
 
 Example output:
