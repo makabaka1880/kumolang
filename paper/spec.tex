@@ -70,9 +70,9 @@ P & ::= & s & \text{(Instruction)} \\
 [1.5ex]
 s & ::= & \text{\texttt{skip}} & \text{(Stasis)} \\
   & \mid  & x \leftarrow \text{\texttt{new-mixture}}() & \text{(Domain allocation)} \\
-  & \mid  & y \leftarrow \text{\texttt{prep}}(x) & \text{(Monadic pure: lift mixture $x$ to container $y$)} \\
-  & \mid  & y \leftarrow \text{\texttt{pour}}(y, z) & \text{(Monadic join: merge container $z$ into container $y$)} \\
-  & \mid  & z \leftarrow \text{\texttt{pour-out}}(y, x) & \text{(Type lifting: lift container $y$ into domain $x$)} \\
+  & \mid  & y \leftarrow \text{\texttt{prep}}(x) & \text{(Lift mixture $x$ to container $y$)} \\
+  & \mid  & y \leftarrow \text{\texttt{pour}}(y, z) & \text{(Merge container $z$ into container $y$)} \\
+  & \mid  & z \leftarrow \text{\texttt{pour-out}}(y, x) & \text{(Type casting: lift container $y$ into domain $x$)} \\
 \end{array}
 \]
 
