@@ -116,7 +116,7 @@ With the store model in place, we now define the evaluation relation that govern
 \]
 
 \[
-\inference[\text{Cont-Pour}]{\sigma(y) = L_1 \in \mathcal{L}_m \quad \sigma(z) = L_2 \in \mathcal{L}_m}
+\inference[\text{Pour-In}]{\sigma(y) = L_1 \in \mathcal{L}_m \quad \sigma(z) = L_2 \in \mathcal{L}_m}
 {\langle y \leftarrow \text{\texttt{pour}}(y, z) \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[y \leftarrow L_1 \mathbin{+\mkern-10mu+} L_2] \rangle}
 \]
 
@@ -170,7 +170,7 @@ The execution proceeds through a sequence of small-step reductions.
 \\
 &\to
 \langle P_5,\sigma_5\rangle
-&& \textsc{Cont-Pour}
+&& \textsc{Pour-In}
 \\
 &\to
 \langle P_6,\sigma_6\rangle
@@ -283,7 +283,7 @@ The Kumo Verification Engine extracts this graph automatically from the operatio
 \subsection{Implementation}
 The trace extraction and graph construction procedures described above have been realized in a prototype implementation. A Rust implementation of the Kumo Verification Engine is available at \url{https://github.com/makabaka1880/kumolang}. The engine accepts programs in a concrete S-expression syntax (detailed in the Appendix), computes the full small-step reduction sequence, and outputs the corresponding provenance graph.
 
-\subsection{Provenance}
+\subsection{Provenance} TODO
 \section{Conclusion}
 
 We have presented KumoLang, a purely imperative specification language whose operational semantics provide correctness-by-construction guarantees for physical culinary procedures. By encoding resource manipulation as a list-monad algebra over nominal mixture domains, the framework renders invalid configurations—cross-contamination, unbound references, and structural cycles—completely unrepresentable. The Kumo Verification Engine demonstrates that these guarantees can be realized in practice, producing certifiable provenance graphs from small-step reduction traces with zero runtime verification overhead. While the current framework is scoped to linear, non-recursive pastry synthesis, the underlying semantic architecture is general and invites extension to more expressive culinary settings.

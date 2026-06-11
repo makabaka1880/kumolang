@@ -649,13 +649,13 @@
     (skip)
 )</textarea>
                 <div class="playground-controls">
-                    <button id="btn-verify" class="playground-btn btn-verify">Verify</button>
-                    <button id="btn-reset" class="playground-btn btn-reset">Reset</button>
                     <span class="sample-label">Samples:</span>
                     <button class="playground-btn btn-sample" data-sample="basque">Basque</button>
                     <button class="playground-btn btn-sample" data-sample="simple">Simple</button>
                     <button class="playground-btn btn-sample" data-sample="error">Error</button>
                     <button class="playground-btn btn-sample" data-sample="multi">Multi</button>
+                    <button id="btn-verify" class="playground-btn btn-verify">Verify</button>
+                    <button id="btn-reset" class="playground-btn btn-reset">Reset</button>
                 </div>
                 <div id="playground-output" class="playground-output idle">
                     Ready. Click <em>Verify</em> to check your recipe.
@@ -740,7 +740,7 @@
                             container carries the domain token as its type tag.</td>
                     </tr>
                     <tr>
-                        <td>Cont-Pour</td>
+                        <td>Pour-In</td>
                         <td><code>pour</code> validates domain equality between both source containers, then merges
                             their histories into the destination. Domain mismatch → verification failure.
                             Cross-contamination is literally unrepresentable.</td>
