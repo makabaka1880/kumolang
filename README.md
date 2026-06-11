@@ -1,6 +1,8 @@
 # KumoLang
 
 > A formal verification framework for culinary procedure synthesis.
+> 
+> The authors are having a hard time coping with their end-of-terms so some features are still TODO. Please be patient.
 
 KumoLang is a domain-specific language for describing and verifying culinary procedures through operational semantics and provenance analysis.
 
@@ -67,12 +69,7 @@ cat recipe.kumo | cargo run
 Example output:
 
 ```text
-✓ Parsed 7 statements
-✓ Executed program
-✓ Constructed provenance graph
-✓ Verified culinary artifact
-
-Result: Cheesecake synthesis successful.
+✓ Verification passed.
 ```
 
 ## Language Specification
@@ -138,7 +135,7 @@ combines containers.
 
 materializes an artifact within a target mixture.
 
-## Provenance Analysis
+## Provenance Analysis (TODO)
 
 Every execution trace can be transformed into a dependency graph.
 
@@ -154,7 +151,7 @@ For example, Matcha Basque Cheesecake and Chocolate Basque Cheesecake may be ide
 
 ## Theoretical Background
 
-The formal semantics are described in the accompanying paper:
+The formal semantics are described in the accompanying paper (/paper/spec.tex):
 
 > KumoLang: A Formal Verification Framework for Culinary Procedure Synthesis
 
