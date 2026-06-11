@@ -1,0 +1,335 @@
+\documentclass[11pt, a4paper]{article}
+
+\title{
+KumoLang:
+A Formal Verification Framework for Cheesecake Synthesis%
+\thanks{
+This is a joke paper. However, KumoLang is a language that actually works, and if one does not mind expressing recipes in a Lisp-like syntax, it is entirely suitable for daily cheesecake synthesis workflows.
+}%
+\thanks{
+Portions of this manuscript were generated with the assistance of AI tools. The language design, operational semantics, and formalization were developed by the authors. While the presentation is intentionally comedic, the underlying formal methods are genuine.
+}%
+\thanks{
+The authors thank Kumo for an excellent APCSA course.
+}%
+\thanks{
+The authors thank KumoKumo for producing the Basque cheesecakes that inspired this work.
+}
+}
+\author{
+  Sean L. \\
+  \and
+  Thomas W. \\
+  \and
+  Eric Y. \\
+  \and
+  Jack Z. \\
+  \and
+  Chimi H. \\
+}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{semantic}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{graphicx}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+    We present \textbf{KumoLang}, a purely imperative specification language and verification framework that formalizes culinary execution procedures through linear state transitions and structural correctness-by-construction. Unlike traditional stateful architectures that rely on decoupled static analysis or complex reference counting, the operational semantics of KumoLang inherently guarantee a well-formed, acyclic dependency trace during runtime evaluation. We formalize the core syntax and execution state through a list-monad architecture: raw components are lifted into isolated container types via a monadic \text{\texttt{prep}} constructor, combined symmetrically via an endomorphic \text{\texttt{pour}} operator, and transitioned across distinct nominal domains using a type-lifting \text{\texttt{pour-out}} functor. Because the structural rules of the calculus strictly forbid invalid resource configurations, ill-formed physical configurations—such as domain cross-contamination or unbound variable references—are rendered completely unrepresentable. This tight coupling of language semantics and safety invariants allows the framework to enforce absolute domain boundaries natively, ensuring the deterministic, verified synthesis of a target KumoKumo Basque pastry specification with zero compilation or runtime verification overhead.
+\end{abstract}
+
+% --- SECTION 1: INTRODUCTION ---
+\section{Introduction}
+In his foundational work \emph{Tractatus Logico-Philosophicus}, Ludwig Wittgenstein famously asserted, ``The world is everything that is the case. The world is the totality of facts, not of things'' \cite{wit}. If we extend this analytical framework to the physical bounds of the culinary arts, we encounter a profound systemic failure in modern procedural tracking. The modern kitchen is not a loose collection of macroscopic things (e.g., cheese, eggs, vessels); it is a rigorous totality of state-based facts, thermodynamic boundaries, and irreversible substructural transformations.
+
+Traditionally, the formal verification of physical procedures has been severely neglected by the programming language theory (PLT) community. This oversight has left the domain of recipe analysis primarily to coarse natural language processing (NLP) heuristics and machine learning dependency graphs designed for general commonsense reasoning \cite{commonsense}. These stochastic methods are fundamentally inadequate. They treat a physical sequence as a relaxed recommendation rather than what it truly is: a stateful, resource-bounded program. In a physical environment, resources are consumed linearly, and state transformations are destructive and non-monotonic. An egg, once emulsified into a dairy matrix, cannot be recovered via structural weakening or contraction.
+
+To rectify this foundational gap, we introduce \textbf{KumoLang}, a purely imperative specification language and verification framework engineered to formalize the synthesis of complex multi-component pastries—specifically optimized for a localized compilation target of a KumoKumo Basque cheesecake. Unlike traditional verification platforms that require upfront static linting passes to check resource safety, the structural semantics of KumoLang inherently guarantee a well-formed directed acyclic graph (DAG) of physical dependencies directly during linear statement evaluation. By mapping execution to a strict sequential list-monad algebra, the small-step operational evaluation of an un-nested program naturally achieves a state of \emph{Correctness-by-Construction}: raw mixtures are instantiated as isolated, generative nominal types, which are subsequently manipulated as linear container assets. The resulting abstract semantic trace renders invalid physical states completely unrepresentable, ensuring the deterministic and verified synthesis of the target pastry specification with zero runtime overhead.
+
+The remainder of this paper is organized as follows. Section~2 presents the abstract syntax and small-step operational semantics of KumoLang, formalizing its core monadic operators and the structural invariants they enforce. Section~3 introduces the Kumo Verification Engine and walks through a complete trace evaluation for a canonical cheesecake synthesis program. Section~4 concludes, and Section~5 outlines directions for future work.
+
+\section{Syntax and Abstract Architecture}
+
+We now formalize the core calculus that underpins the guarantees outlined above. The language utilizes an S-Expression syntax restricted to variable identifiers for operational arguments, structurally enforcing a clear line of resource custody. We begin with the formal grammar, then define the semantic domains over which evaluation operates, and finally present the small-step operational semantics that constitute the heart of the verification framework.
+% --- SUBSECTION: FORMAL GRAMMAR ---
+\subsection{Formal Grammar}
+Let $x, y, z \in \text{Var}$ range over variable identifiers tracking active mixtures or container states. A KumoLang program $P$ consists of a sequentially composed chain of statements $s$, defined inductively by the following abstract syntax:
+
+\[
+\begin{array}{rcll}
+P & ::= & s & \text{(Instruction)} \\
+  & \mid  & s \;;\; P & \text{(Sequence)} \\
+[1.5ex]
+s & ::= & \text{\texttt{skip}} & \text{(Stasis)} \\
+  & \mid  & x \leftarrow \text{\texttt{new-mixture}}() & \text{(Domain allocation)} \\
+  & \mid  & y \leftarrow \text{\texttt{prep}}(x) & \text{(Monadic pure: lift mixture $x$ to container $y$)} \\
+  & \mid  & y \leftarrow \text{\texttt{pour}}(y, z) & \text{(Monadic join: merge container $z$ into container $y$)} \\
+  & \mid  & z \leftarrow \text{\texttt{pour-out}}(y, x) & \text{(Type lifting: lift container $y$ into domain $x$)} \\
+\end{array}
+\]
+
+
+\subsection{Semantic Domains}
+Having specified the syntactic forms, we now define the semantic domains over which program evaluation operates. Unlike conventional general-purpose programming languages designed for value transformation or numerical computation, KumoLang is a domain-specific specification language. Its operational semantics do not model a traditional abstract machine; rather, they formally characterize the evolution of valid structural relationships and resource tracking. An execution trace represents a sequence of logical validations proving that a physical process is structurally coherent.
+
+We define the semantic domains to track nominal mixture scopes and container configurations. Let $\mathcal{M}$ be a countable set of generative mixture domain tokens, and $\text{Var}$ be the set of variable identifiers. 
+
+\[
+\begin{array}{rclr}
+m &\in& \mathcal{M} & \text{(Nominal Mixture Identifiers)} \\
+L &\in& \mathcal{L}_m = \text{List}(m) & \text{(Structural History List Domain)} \\
+\sigma &\in& \text{Store} = \text{Var} \to (\mathcal{M} \cup \mathcal{L}_m) & \text{(Structural Environment State)} \\
+\end{array}
+\]
+
+When a variable identifier is resolved in the environment store $\sigma$, it maps to one of two structural categories:
+\begin{itemize}
+    \item \textbf{Mixture Labels ($m \in \mathcal{M}$):} Act as a strict type-level boundary. Objects belonging to separate mixture universes cannot cross-contaminate.
+    \item \textbf{Container Configurations ($L \in \mathcal{L}_m$):} Represent the physical state of a vessel, formalized as a list tracking the chronological history log of components poured into it.
+\end{itemize}
+
+\subsection{Small-Step Operational Semantics}
+With the store model in place, we now define the evaluation relation that governs program execution. A state configuration is defined as a pair $\langle P, \sigma \rangle$, where $P$ is the remaining program sequence and $\sigma$ is the current environmental store. The structural evaluation relation $\langle P, \sigma \rangle \to \langle P', \sigma' \rangle$ defines a single step of structural validation. We present the inference rules for each statement form below. 
+
+\[
+\inference[\text{Stasis}]{}
+{\langle \text{\texttt{skip}} \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma \rangle}
+\]
+
+\[
+\inference[\text{Domain-Alloc}]{m \notin \text{img}(\sigma)}
+{\langle x \leftarrow \text{\texttt{new-mixture}}() \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[x \leftarrow m] \rangle}
+\]
+
+\[
+\inference[\text{Ing-Prep}]{\sigma(x) = m}
+{\langle y \leftarrow \text{\texttt{prep}}(x) \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[y \leftarrow [m]] \rangle}
+\]
+
+\[
+\inference[\text{Cont-Pour}]{\sigma(y) = L_1 \in \mathcal{L}_m \quad \sigma(z) = L_2 \in \mathcal{L}_m}
+{\langle y \leftarrow \text{\texttt{pour}}(y, z) \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[y \leftarrow L_1 \mathbin{+\mkern-10mu+} L_2] \rangle}
+\]
+
+\[
+\inference[\text{Pour-Out}]{\sigma(y) = L_1 \in \mathcal{L}_m \quad \sigma(x) = m_{\text{target}}}
+{\langle z \leftarrow \text{\texttt{pour-out}}(y, x) \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[y \leftarrow [], \; z \leftarrow [m_{\text{target}}]] \rangle}
+\]
+
+\section{The Kumo Verification Engine}
+
+The operational semantics of Section~2 define, in principle, what constitutes a valid culinary execution. In practice, however, verifying that a given program actually produces the desired pastry requires a concrete evaluation engine. The Kumo Verification Engine realizes this by computing small-step reduction sequences from an initial program-store configuration and extracting the resulting dependency trace as a certifiable artifact. We now illustrate this process end-to-end.
+
+\subsection{Trace Evaluation}
+We demonstrate the evaluation of a simple KumoLang program that synthesizes a basic cheesecake specification. Consider the following program, which allocates two mixture domains (a base mixture for ingredients and a baking mixture for the final product), prepares two ingredients from the base domain, combines them via a pour, and finally transitions the combined container into the baking domain. 
+\[
+\begin{array}{l}
+\text{BaseMix} \leftarrow \text{\texttt{new-mixture}}() \;;\; \\
+\text{BakeMix} \leftarrow \text{\texttt{new-mixture}}() \;;\; \\
+c_{\text{cheese}} \leftarrow \text{\texttt{prep}}(\text{BaseMix}) \;;\; \\
+c_{\text{sugar}} \leftarrow \text{\texttt{prep}}(\text{BaseMix}) \;;\; \\
+c_{\text{bowl}} \leftarrow \text{\texttt{pour}}(c_{\text{cheese}}, c_{\text{sugar}}) \;;\; \\
+c_{\text{cake}} \leftarrow \text{\texttt{pour-out}}(c_{\text{bowl}}, \text{BakeMix}) \;;\; \\
+\text{\texttt{skip}}
+\end{array}
+\]
+We evaluate the operational semantics on this program by applying the inference rules of Section~2.3. Let the initial store be the empty environment:
+
+\[
+\sigma_0 = \emptyset.
+\]
+
+The execution proceeds through a sequence of small-step reductions.
+
+\begin{align*}
+\langle P_0,\sigma_0\rangle
+&\to
+\langle P_1,\sigma_1\rangle
+&& \textsc{Domain-Alloc}
+\\
+&\to
+\langle P_2,\sigma_2\rangle
+&& \textsc{Domain-Alloc}
+\\
+&\to
+\langle P_3,\sigma_3\rangle
+&& \textsc{Ing-Prep}
+\\
+&\to
+\langle P_4,\sigma_4\rangle
+&& \textsc{Ing-Prep}
+\\
+&\to
+\langle P_5,\sigma_5\rangle
+&& \textsc{Cont-Pour}
+\\
+&\to
+\langle P_6,\sigma_6\rangle
+&& \textsc{Pour-Out}
+\\
+&\to
+\langle \texttt{skip},\sigma_6\rangle
+&& \textsc{Stasis}
+\end{align*}
+
+where the intermediate stores, obtained by applying the corresponding semantic rule at each step, are given by
+
+\[
+\sigma_1
+=
+\{
+\text{BaseMix} \mapsto m_1
+\},
+\]
+
+\[
+\sigma_2
+=
+\{
+\text{BaseMix} \mapsto m_1,
+\text{BakeMix} \mapsto m_2
+\},
+\]
+
+\[
+\sigma_3
+=
+\sigma_2
+\bigl[
+c_{\mathrm{cheese}}
+\mapsto
+[m_1]
+\bigr],
+\]
+
+\[
+\sigma_4
+=
+\sigma_3
+\bigl[
+c_{\mathrm{sugar}}
+\mapsto
+[m_1]
+\bigr],
+\]
+
+\[
+\sigma_5
+=
+\sigma_4
+\bigl[
+c_{\mathrm{bowl}}
+\mapsto
+[m_1,m_1]
+\bigr],
+\]
+
+\[
+\sigma_6
+=
+\sigma_5
+\bigl[
+c_{\mathrm{bowl}}
+\mapsto
+[],
+\;
+c_{\mathrm{cake}}
+\mapsto
+[m_2]
+\bigr].
+\]
+
+The final configuration certifies the successful construction of a cheesecake artifact within the baking domain $m_2$: variable $c_{\mathrm{cake}}$ is bound to the singleton history list $[m_2]$, confirming that the combined contents of the bowl have been correctly transitioned into the target baking domain. Meanwhile, $c_{\mathrm{bowl}}$ has been drained to the empty list $[]$, reflecting the physical reality that the bowl is now empty—its contents having been irreversibly transferred.
+
+This execution trace can be interpreted as a dependency graph describing the provenance of the synthesized culinary artifact. Each node represents a variable binding event, and each edge captures a resource-flow dependency induced by the semantic rules. The resulting graph for our example program is shown below.
+
+\[
+\begin{array}{c}
+\text{BaseMix}
+\\
+\downarrow
+\\
+c_{\mathrm{cheese}}
+\qquad
+c_{\mathrm{sugar}}
+\\
+\diagdown
+\qquad
+\diagup
+\\
+c_{\mathrm{bowl}}
+\\
+\downarrow
+\\
+c_{\mathrm{cake}}
+\\
+\uparrow
+\\
+\text{BakeMix}
+\end{array}
+\]
+
+The Kumo Verification Engine extracts this graph automatically from the operational trace. Provenance queries may subsequently be answered through graph traversal, while culinary genealogy analysis may be performed through subgraph matching and graph-isomorphism techniques. The algorithm of trace extraction is relatively trivial and will not be given in detail here.
+
+\subsection{Implementation}
+The trace extraction and graph construction procedures described above have been realized in a prototype implementation. A Rust implementation of the Kumo Verification Engine is available at \url{https://github.com/makabaka1880/kumolang}. The engine accepts programs in a concrete S-expression syntax (detailed in the Appendix), computes the full small-step reduction sequence, and outputs the corresponding provenance graph.
+
+\section{Conclusion}
+
+We have presented KumoLang, a purely imperative specification language whose operational semantics provide correctness-by-construction guarantees for physical culinary procedures. By encoding resource manipulation as a list-monad algebra over nominal mixture domains, the framework renders invalid configurations—cross-contamination, unbound references, and structural cycles—completely unrepresentable. The Kumo Verification Engine demonstrates that these guarantees can be realized in practice, producing certifiable provenance graphs from small-step reduction traces with zero runtime verification overhead. While the current framework is scoped to linear, non-recursive pastry synthesis, the underlying semantic architecture is general and invites extension to more expressive culinary settings.
+
+\section{Future Work}
+
+Several extensions remain unexplored. First, we intend to extend KumoLang with support for recursive pastry generation and higher-order baking combinators. Second, we plan to investigate distributed compilation across multiple ovens. Finally, we hope to formalize a dependent type system capable of statically ruling out crust formation.
+
+\section{Related Work}
+Up to our knowledge, KumoLang is the first formal verification framework designed specifically for culinary procedure synthesis, especially in the domain of cheese basque cooking. 
+
+\section{Appendix}
+\subsection{Concrete Syntax for Implementation}
+\begin{verbatim}
+<stmt>      ::= <skip_stmt> 
+            | ( new-mixture <id> )
+            | ( prep        <id> <id> )
+            | ( pour        <id> <id> <id> )
+            | ( pour-out    <id> <id> <id> )
+
+<skip_stmt> ::= skip 
+            | ( skip )
+
+<id>        matches any valid identifier parsed by `parse_ident`
+\end{verbatim}
+
+\subsection{Proofs}
+\begin{theorem}[Basque Preservation]
+If a program $P$ evaluates to a verified Basque cheesecake
+artifact, then no execution trace of $P$ contains a crust
+construction event.
+\end{theorem}
+
+\begin{proof}
+By inspection of the operational semantics.
+No rule introduces a crust.
+\end{proof}
+
+\newpage
+\begin{thebibliography}{9}
+    \bibitem{wit}
+      L. Wittgenstein,
+      \emph{Tractatus Logico-Philosophicus},
+      Routledge \& Kegan Paul, 1922.
+    
+    \bibitem{commonsense}
+      A.~Bikakis, A.~Diallo, L.~Dickens, A.~Hunter, and R.~Miller,
+      \emph{A Graphical Formalism for Commonsense Reasoning with Recipes},
+      arXiv preprint arXiv:2306.09042, 2023.
+\end{thebibliography}
+\end{document}
