@@ -1,0 +1,15 @@
+{
+  "name": "kumolang",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "kumolang_bg.wasm",
+    "kumolang.js",
+    "kumolang.d.ts"
+  ],
+  "main": "kumolang.js",
+  "types": "kumolang.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
