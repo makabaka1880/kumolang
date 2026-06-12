@@ -17,7 +17,7 @@ The authors thank Kumo for an excellent APCSA course.
 The authors thank KumoKumo for producing the Basque cheesecakes that inspired this work.
 }
 \thanks{
-KumoLang is a
+KumoLang is a purely noncommercial, open-source, academic parody and educational experiment. It is developed entirely for non-profit pedagogical purposes, research exploration in programming language theory (PLT), and personal recreation. No revenue, commercial services, or physical products are associated with this project. It is a standalone project and is not affiliated with, authorized, maintained, sponsored, or endorsed by, or in any way officially connected to the pastry brand KumoKumo, any of its affiliates, or any other entity or individual utilizing the name "Kumo".
 }
 }
 \author{
@@ -131,6 +131,9 @@ With the store model in place, we now define the evaluation relation that govern
 \section{The Kumo Verification Engine}
 
 The operational semantics of Section~2 define, in principle, what constitutes a valid culinary execution. In practice, however, verifying that a given program actually produces the desired pastry requires a concrete evaluation engine. The Kumo Verification Engine realizes this by computing small-step reduction sequences from an initial program-store configuration and extracting the resulting dependency trace as a certifiable artifact. We now illustrate this process end-to-end.
+
+\subsection{Semantic DAG Generation}
+Because of the linear nature of resources in KumoLang, the dependency graph of any KumoLang program is guaranteed to be a directed acyclic graph (DAG). Each node in the DAG corresponds to a variable binding event, and each directed edge represents a resource flow or dependency induced by the operational semantics. For example, if variable $y$ is derived from variable $x$ through a \texttt{prep} operation, there will be a directed edge from the node representing $x$ to the node representing $y$. Similarly, if variable $z$ is derived from variables $y_1$ and $y_2$ through a \texttt{pour} operation, there will be directed edges from both $y_1$ and $y_2$ to $z$. The absence of cycles in this graph is guaranteed by the semantics, as resources cannot be reused or reintroduced once consumed. This structural property allows the Kumo Verification Engine to efficiently extract and represent the provenance of the synthesized pastry artifact as a DAG, which can then be used for further analysis or verification.
 
 \subsection{Trace Evaluation}
 We demonstrate the evaluation of a simple KumoLang program that synthesizes a basic cheesecake specification. Consider the following program, which allocates two mixture domains (a base mixture for ingredients and a baking mixture for the final product), prepares two ingredients from the base domain, combines them via a pour, and finally transitions the combined container into the baking domain. 
@@ -281,12 +284,11 @@ c_{\mathrm{cake}}
 \end{array}
 \]
 
-The Kumo Verification Engine extracts this graph automatically from the operational trace. Provenance queries may subsequently be answered through graph traversal, while culinary genealogy analysis may be performed through subgraph matching and graph-isomorphism techniques. The algorithm of trace extraction is relatively trivial and will not be given in detail here.
+The Kumo Verification Engine extracts this graph automatically from the operational trace. Provenance queries may subsequently be answered through graph traversal, while culinary genealogy analysis may be performed through subgraph matching and graph-isomorphism techniques. 
 
 \subsection{Implementation}
 The trace extraction and graph construction procedures described above have been realized in a prototype implementation. A Rust implementation of the Kumo Verification Engine is available at \url{https://github.com/makabaka1880/kumolang}. The engine accepts programs in a concrete S-expression syntax (detailed in the Appendix), computes the full small-step reduction sequence, and outputs the corresponding provenance graph.
 
-\subsection{Provenance} TODO
 \section{Conclusion}
 
 We have presented KumoLang, a purely imperative specification language whose operational semantics provide correctness-by-construction guarantees for physical culinary procedures. By encoding resource manipulation as a list-monad algebra over nominal mixture domains, the framework renders invalid configurations—cross-contamination, unbound references, and structural cycles—completely unrepresentable. The Kumo Verification Engine demonstrates that these guarantees can be realized in practice, producing certifiable provenance graphs from small-step reduction traces with zero runtime verification overhead. While the current framework is scoped to linear, non-recursive pastry synthesis, the underlying semantic architecture is general and invites extension to more expressive culinary settings.

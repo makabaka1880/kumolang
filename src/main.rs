@@ -6,7 +6,6 @@
 //
 // Makabaka1880, 2026. All rights reserved.
 
-#[path = "AST.rs"]
 mod ast;
 mod engine;
 

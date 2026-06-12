@@ -10,7 +10,7 @@ use std::collections::HashMap;
 
 use sexp::{Atom, Sexp};
 
-use crate::ast::*;
+use crate::{ast::*, dag::*};
 
 // MARK: Store
 #[derive(Debug, Clone)]
@@ -18,7 +18,6 @@ pub enum Value {
     Mixture(u64),
     Container(Vec<u64>),
 }
-
 
 #[derive(Debug)]
 pub struct Store {
@@ -28,7 +27,10 @@ pub struct Store {
 
 impl Store {
     pub fn new() -> Self {
-        Store { bindings: HashMap::new(), next_id: 0 }
+        Store {
+            bindings: HashMap::new(),
+            next_id: 0,
+        }
     }
 
     /// Allocate a fresh, unique mixture domain token.
@@ -46,7 +48,6 @@ impl Store {
         self.bindings.insert(name, value);
     }
 }
-
 
 // MARK: Parsing
 fn parse_ident(sexp: &Sexp) -> Result<String, String> {
@@ -128,7 +129,10 @@ pub fn parse_program(input: &str) -> Result<Program, String> {
             if let Sexp::Atom(Atom::S(s)) = &list[0] {
                 if s == "begin" || s == "program" {
                     // Skip the wrapper symbol
-                    list[1..].iter().map(parse_stmt).collect::<Result<Vec<_>, _>>()?
+                    list[1..]
+                        .iter()
+                        .map(parse_stmt)
+                        .collect::<Result<Vec<_>, _>>()?
                 } else {
                     list.iter().map(parse_stmt).collect::<Result<Vec<_>, _>>()?
                 }
@@ -150,6 +154,7 @@ pub struct VerificationResult {
     pub errors: Vec<String>,
     #[allow(dead_code)]
     pub store: Store,
+    pub graph: RecipeDAG,
 }
 
 impl std::fmt::Display for VerificationResult {
@@ -170,6 +175,7 @@ impl std::fmt::Display for VerificationResult {
 /// Run the full verification pipeline over a parsed program.
 pub fn verify(program: &Program) -> VerificationResult {
     let mut store = Store::new();
+    let mut graph = RecipeDAG::new();
     let mut errors: Vec<String> = Vec::new();
 
     for stmt in &program.0 {
@@ -178,7 +184,12 @@ pub fn verify(program: &Program) -> VerificationResult {
         }
     }
 
-    VerificationResult { passed: errors.is_empty(), errors, store }
+    VerificationResult {
+        passed: errors.is_empty(),
+        graph: todo!(),
+        errors,
+        store,
+    }
 }
 
 fn eval_stmt(stmt: &Stmt, store: &mut Store) -> Result<(), String> {
@@ -206,12 +217,10 @@ fn eval_stmt(stmt: &Stmt, store: &mut Store) -> Result<(), String> {
         Stmt::Pour(src1, src2, dest) => match (store.get(src1), store.get(src2)) {
             (Some(Value::Container(c1)), Some(Value::Container(c2))) => {
                 let domain_violation = match (c1.first(), c2.first()) {
-                    (Some(a), Some(b)) if a != b => {
-                        Some(format!(
-                            "pour: containers '{}' (domain {}) and '{}' (domain {}) differ",
-                            src1, a, src2, b
-                        ))
-                    }
+                    (Some(a), Some(b)) if a != b => Some(format!(
+                        "pour: containers '{}' (domain {}) and '{}' (domain {}) differ",
+                        src1, a, src2, b
+                    )),
                     _ => None,
                 };
                 if let Some(msg) = domain_violation {
@@ -259,9 +268,7 @@ fn eval_stmt(stmt: &Stmt, store: &mut Store) -> Result<(), String> {
                     container
                 )),
                 (None, _, _) => Err(format!("pour-out: '{}' is not bound", container)),
-                (Some("container"), None, _) => {
-                    Err(format!("pour-out: '{}' is not bound", target))
-                }
+                (Some("container"), None, _) => Err(format!("pour-out: '{}' is not bound", target)),
                 (Some("container"), Some("container"), _) => Err(format!(
                     "pour-out: '{}' is a container, expected a mixture",
                     target

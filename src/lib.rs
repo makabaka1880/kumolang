@@ -5,9 +5,9 @@
 //
 // Makabaka1880, 2026. All rights reserved.
 
-#[path = "AST.rs"]
 mod ast;
 mod engine;
+mod dag;
 
 use wasm_bindgen::prelude::*;
 
