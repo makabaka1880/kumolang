@@ -18,6 +18,11 @@ The language itself, however, is real.
 
 The parser, interpreter, operational semantics, and provenance model are all legitimate implementations. The presentation is intentionally absurd.
 
+KumoLang is a purely noncommercial, open-source, academic parody and educational experiment. It is developed entirely for non-profit pedagogical purposes, research exploration in programming language theory (PLT), and personal recreation. No revenue, commercial services, or physical products are associated with this project. It is a standalone project and is not affiliated with, authorized, maintained, sponsored, or endorsed by, or in any way officially connected to the pastry brand KumoKumo, any of its affiliates, or any other entity or individual utilizing the name "Kumo". 
+
+All product and company names are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
+
+
 ## Features
 
 * Lisp-like syntax

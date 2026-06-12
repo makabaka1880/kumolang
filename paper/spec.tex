@@ -39,6 +39,7 @@ KumoLang is a purely noncommercial, open-source, academic parody and educational
 \usepackage{tikz}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{pdflscape}
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}[theorem]{Lemma}
@@ -58,7 +59,7 @@ Traditionally, the formal verification of physical procedures has been severely 
 
 To rectify this foundational gap, we introduce \textbf{KumoLang}, a purely imperative specification language and verification framework engineered to formalize the synthesis of complex multi-component pastries—specifically optimized for a localized compilation target of a KumoKumo Basque cheesecake. Unlike traditional verification platforms that require upfront static linting passes to check resource safety, the structural semantics of KumoLang inherently guarantee a well-formed directed acyclic graph (DAG) of physical dependencies directly during linear statement evaluation. By mapping execution to a strict sequential list-monad algebra, the small-step operational evaluation of an un-nested program naturally achieves a state of \emph{Correctness-by-Construction}: raw mixtures are instantiated as isolated, generative nominal types, which are subsequently manipulated as linear container assets. The resulting abstract semantic trace renders invalid physical states completely unrepresentable, ensuring the deterministic and verified synthesis of the target pastry specification with zero runtime overhead.
 
-The remainder of this paper is organized as follows. Section~2 presents the abstract syntax and small-step operational semantics of KumoLang, formalizing its core monadic operators and the structural invariants they enforce. Section~3 introduces the Kumo Verification Engine and walks through a complete trace evaluation for a canonical cheesecake synthesis program. Section~4 concludes, and Section~5 outlines directions for future work.
+The remainder of this paper is organized as follows. Section~2 presents the abstract syntax and small-step operational semantics of KumoLang, formalizing its core monadic operators and the structural invariants they enforce. Section~3 introduces the Kumo Verification Engine, walking through a complete trace evaluation for a canonical cheesecake synthesis program and presenting the resulting provenance DAG. Section~4 concludes, Section~5 outlines directions for future work, and Section~6 surveys related work.
 
 \section{Syntax and Abstract Architecture}
 
@@ -132,8 +133,36 @@ With the store model in place, we now define the evaluation relation that govern
 
 The operational semantics of Section~2 define, in principle, what constitutes a valid culinary execution. In practice, however, verifying that a given program actually produces the desired pastry requires a concrete evaluation engine. The Kumo Verification Engine realizes this by computing small-step reduction sequences from an initial program-store configuration and extracting the resulting dependency trace as a certifiable artifact. We now illustrate this process end-to-end.
 
-\subsection{Semantic DAG Generation}
-Because of the linear nature of resources in KumoLang, the dependency graph of any KumoLang program is guaranteed to be a directed acyclic graph (DAG). Each node in the DAG corresponds to a variable binding event, and each directed edge represents a resource flow or dependency induced by the operational semantics. For example, if variable $y$ is derived from variable $x$ through a \texttt{prep} operation, there will be a directed edge from the node representing $x$ to the node representing $y$. Similarly, if variable $z$ is derived from variables $y_1$ and $y_2$ through a \texttt{pour} operation, there will be directed edges from both $y_1$ and $y_2$ to $z$. The absence of cycles in this graph is guaranteed by the semantics, as resources cannot be reused or reintroduced once consumed. This structural property allows the Kumo Verification Engine to efficiently extract and represent the provenance of the synthesized pastry artifact as a DAG, which can then be used for further analysis or verification.
+\subsection{Provenance DAG Generation}
+Because KumoLang permits only forward construction of culinary artifacts, the provenance graph associated with any execution trace is guaranteed to be a directed acyclic graph (DAG). Each vertex corresponds to a variable-binding event occurring during evaluation, while each directed edge records a provenance relation between two bindings. Intuitively, an edge $(u,v) \in E$ indicates that the value bound at $v$ was derived, directly or indirectly, from the value bound at $u$.
+
+The provenance graph is constructed incrementally during evaluation. Operations introduce fresh bindings and establish provenance edges from their operands to the newly created binding. For example, a \texttt{prep} operation introduces a new ingredient binding and records a provenance edge from the source mixture to the ingredient. Likewise, a \texttt{pour} operation introduces a new container binding and records provenance edges from each source container to the resulting container. Finally, a \texttt{pour-out} operation introduces a new container binding whose provenance depends on both the source container and the target mixture.
+
+Acyclicity follows from the operational semantics. Every transition introduces a fresh binding that may depend only on bindings already present in the environment. Consequently, all provenance edges are directed from older bindings to newer bindings, and no operation can introduce a path from a binding back to itself. The resulting graph therefore admits a topological ordering induced by the evaluation trace.
+
+The provenance extraction process operates on a graph state
+
+\[
+G = \langle V,E,\tau,\lambda,\iota\rangle
+\]
+
+where $V$ is the set of provenance vertices, $E \subseteq V \times V$
+is the set of directed provenance edges, $\tau : V \to \{\mathsf{Mixture}\} \cup \{\mathsf{Ingredient}(v) \mid v \in V\} \cup \{\mathsf{Container}(v) \mid v \in V\}$ assigns a parametric semantic
+kind to each vertex (an ingredient or container is always tagged with the mixture vertex it belongs to), $\lambda$ assigns a human-readable label, and
+
+\[
+\iota : \mathcal N \rightharpoonup V
+\]
+
+maps identifiers to their most recent provenance vertex.
+
+The provenance extraction relation
+
+\[
+\langle P,G\rangle \rightsquigarrow \langle P',G'\rangle
+\]
+
+is evaluated in parallel with the operational semantics. The complete algorithm is provided in the appendix \ref{prov-gen}.
 
 \subsection{Trace Evaluation}
 We demonstrate the evaluation of a simple KumoLang program that synthesizes a basic cheesecake specification. Consider the following program, which allocates two mixture domains (a base mixture for ingredients and a baking mixture for the final product), prepares two ingredients from the base domain, combines them via a pour, and finally transitions the combined container into the baking domain. 
@@ -256,38 +285,51 @@ c_{\mathrm{cake}}
 
 The final configuration certifies the successful construction of a cheesecake artifact within the baking domain $m_2$: variable $c_{\mathrm{cake}}$ is bound to the singleton history list $[m_2]$, confirming that the combined contents of the bowl have been correctly transitioned into the target baking domain. Meanwhile, $c_{\mathrm{bowl}}$ has been drained to the empty list $[]$, reflecting the physical reality that the bowl is now empty—its contents having been irreversibly transferred.
 
-This execution trace can be interpreted as a dependency graph describing the provenance of the synthesized culinary artifact. Each node represents a variable binding event, and each edge captures a resource-flow dependency induced by the semantic rules. The resulting graph for our example program is shown below.
+\subsection{Provenance Extraction}
+While the operational trace above validates that each resource configuration is structurally coherent, the provenance extraction relation $\rightsquigarrow$ (defined formally in Appendix~\ref{prov-gen}) runs in lockstep with the evaluation, constructing a directed acyclic graph that records the dependency structure of the entire synthesis. Each small-step reduction induces a corresponding provenance transition $\langle P, G\rangle \rightsquigarrow \langle P', G'\rangle$ that augments the graph state $G = \langle V, E, \tau, \lambda, \iota\rangle$ with fresh vertices and edges.
 
-\[
-\begin{array}{c}
-\text{BaseMix}
-\\
-\downarrow
-\\
-c_{\mathrm{cheese}}
-\qquad
-c_{\mathrm{sugar}}
-\\
-\diagdown
-\qquad
-\diagup
-\\
-c_{\mathrm{bowl}}
-\\
-\downarrow
-\\
-c_{\mathrm{cake}}
-\\
-\uparrow
-\\
-\text{BakeMix}
-\end{array}
-\]
+Applying the provenance rules to our example program yields the DAG shown in Figure~\ref{fig:provenance-dag}. The graph contains six vertices reflecting the semantic role of each binding: two mixture vertices ($v_1$, $v_2$) created by \texttt{new-mixture}; two ingredient vertices ($v_3$, $v_4$) created by \texttt{prep}, each parametric to the base mixture $v_1$ (i.e., $\tau(v_3) = \tau(v_4) = \mathsf{Ingredient}(v_1)$); one container vertex ($v_5$) created by \texttt{pour}, parametric to $v_1$ (i.e., $\tau(v_5) = \mathsf{Container}(v_1)$); and one container vertex ($v_6$) created by \texttt{pour-out}, parametric to the target baking mixture $v_2$ (i.e., $\tau(v_6) = \mathsf{Container}(v_2)$). The six directed edges encode the full provenance chain: ingredients $v_3$ and $v_4$ each derive from the base mixture $v_1$; the combined container $v_5$ depends on both $v_3$ and $v_4$; and the final container $v_6$ depends on both the drained container $v_5$ and the target baking mixture $v_2$. The acyclicity of the graph follows directly from the operational semantics: every provenance rule introduces edges only from pre-existing vertices to a freshly allocated vertex, so no cycle can form. The resulting graph therefore admits a topological ordering induced by the evaluation trace—in this case, $v_1 \prec v_2 \prec v_3 \prec v_4 \prec v_5 \prec v_6$.
 
-The Kumo Verification Engine extracts this graph automatically from the operational trace. Provenance queries may subsequently be answered through graph traversal, while culinary genealogy analysis may be performed through subgraph matching and graph-isomorphism techniques. 
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  >=stealth,
+  every node/.style={draw, minimum width=2.4cm, minimum height=0.7cm, font=\small},
+  mixture/.style={fill=blue!12},
+  ingredient/.style={fill=green!12},
+  container/.style={fill=yellow!15},
+  every edge/.style={draw, ->, >=stealth, thick},
+]
+  % Row 1: Mixtures
+  \node[mixture] (m1) at (0,0) {$\mathsf{M}$\;: BaseMix ($v_1$)};
+  \node[mixture] (m2) at (5.5,0) {$\mathsf{M}$\;: BakeMix ($v_2$)};
+
+  % Row 2: Ingredients (from prep)
+  \node[ingredient] (cch) at (-1.3,-2.2) {$\mathsf{I}$\;: $c_{\mathrm{cheese}}$ ($v_3$)};
+  \node[ingredient] (csu) at (1.3,-2.2) {$\mathsf{I}$\;: $c_{\mathrm{sugar}}$ ($v_4$)};
+
+  % Row 3: Container (from pour)
+  \node[container] (cbw) at (0,-4.4) {$\mathsf{C}$\;: $c_{\mathrm{bowl}}$ ($v_5$)};
+
+  % Row 3 (right): Container (from pour-out)
+  \node[container] (cck) at (5.5,-4.4) {$\mathsf{C}$\;: $c_{\mathrm{cake}}$ ($v_6$)};
+
+  % Edges
+  \draw[->] (m1) -- (cch);
+  \draw[->] (m1) -- (csu);
+  \draw[->] (cch) -- (cbw);
+  \draw[->] (csu) -- (cbw);
+  \draw[->] (cbw) -- (cck);
+  \draw[->] (m2) -- (cck);
+\end{tikzpicture}
+\caption{Provenance DAG extracted from the example cheesecake synthesis program. Vertex colors and labels indicate provenance kind: $\mathsf{M}$ = Mixture, $\mathsf{I}$ = Ingredient (parametric to parent mixture), $\mathsf{C}$ = Container (parametric to parent mixture). Edges are directed from source to derived binding, encoding the full dependency chain from domain allocation through to the final product. The graph is guaranteed acyclic by the operational semantics: every rule introduces edges only from pre-existing vertices to a freshly allocated vertex.}
+\label{fig:provenance-dag}
+\end{figure}
+
+The provenance graph serves as a certifiable artifact of correct synthesis: it demonstrates not only that the program ran without error, but that every intermediate binding is traceable to a valid domain allocation, that no cross-contamination occurred (containers $v_3$ and $v_4$ share the same mixture ancestor $v_1$), and that the final product $v_6$ correctly depends on both the combined bowl contents and the target baking domain.
 
 \subsection{Implementation}
-The trace extraction and graph construction procedures described above have been realized in a prototype implementation. A Rust implementation of the Kumo Verification Engine is available at \url{https://github.com/makabaka1880/kumolang}. The engine accepts programs in a concrete S-expression syntax (detailed in the Appendix), computes the full small-step reduction sequence, and outputs the corresponding provenance graph.
+The trace extraction and graph construction procedures described above have been realized in a prototype implementation. A Rust implementation of the Kumo Verification Engine is available at \url{https://github.com/makabaka1880/kumolang}. The engine accepts programs in a concrete S-expression syntax (detailed in Appendix~\ref{conc-synt}), computes the full small-step reduction sequence, and outputs the corresponding provenance graph in both human-readable and machine-readable (JSON) formats. The implementation enriches the formal provenance model of Appendix~\ref{prov-gen} with additional intermediate vertices—for instance, \texttt{prep} generates both a container vertex and an ingredient vertex linked by an intermediate edge—yielding a finer-grained dependency trace than the abstract rules prescribe. This additional resolution is semantically conservative: the coarser formal graph can be recovered by contracting each ingredient--container chain into a single vertex.
 
 \section{Conclusion}
 
@@ -298,10 +340,147 @@ We have presented KumoLang, a purely imperative specification language whose ope
 Several extensions remain unexplored. First, we intend to extend KumoLang with support for recursive pastry generation and higher-order baking combinators. Second, we plan to investigate distributed compilation across multiple ovens. Finally, we hope to formalize a dependent type system capable of statically ruling out crust formation.
 
 \section{Related Work}
-Up to our knowledge, KumoLang is the first formal verification framework designed specifically for culinary procedure synthesis, especially in the domain of cheese basque cooking. 
+To our knowledge, KumoLang is the first formal verification framework designed specifically for culinary procedure synthesis, particularly in the domain of Basque cheesecake preparation. Prior work on recipe representation has focused primarily on natural-language parsing and commonsense knowledge graphs~\cite{commonsense}, which model cooking actions as relaxed recommendations rather than as resource-linear programs with formal safety guarantees. In the broader PLT literature, substructural type systems (e.g., linear and affine types) have been applied to resource management, and monadic embeddings have been used to structure effectful computations; KumoLang adapts these techniques to the novel domain of physical culinary state, demonstrating that correctness-by-construction is achievable even for pastry specification.
 
-\section{Appendix}
-\subsection{Concrete Syntax for Implementation}
+\appendix
+
+\begin{landscape}
+    
+\section{Provenance Generation}
+\label{prov-gen}
+    \[
+    \inference[\text{Stasis-Prov}]{}
+    {
+    \langle
+    \text{\texttt{skip}} \;;\; P,
+    \langle V,E,\tau,\lambda,\iota\rangle
+    \rangle
+    \rightsquigarrow
+    \langle
+    P,
+    \langle V,E,\tau,\lambda,\iota\rangle
+    \rangle
+    }
+    \]
+    
+    \[
+    \inference[\text{Domain-Alloc-Prov}]
+    {
+    v \notin V
+    }
+    {
+    \left\langle
+    x \leftarrow \text{\texttt{new-mixture}}() \;;\; P,
+    \langle V,E,\tau,\lambda,\iota\rangle
+    \right\rangle
+    \rightsquigarrow
+    \left\langle
+    P,
+    \left\langle
+    V \cup \{v\},
+    E,
+    \tau[v \mapsto \textsf{Mixture}],
+    \lambda[v \mapsto x],
+    \iota[x \mapsto v]
+    \right\rangle
+    \right\rangle
+    }
+    \]
+    
+    \[
+    \inference[\text{Ing-Prep-Prov}]
+    {
+    \iota(x)=v_m
+    \qquad
+    \tau(v_m)=\mathsf{Mixture}
+    \qquad
+    v_i \notin V
+    }
+    {
+    \left\langle
+    y \leftarrow \text{\texttt{prep}}(x) \;;\; P,
+    \langle V,E,\tau,\lambda,\iota\rangle
+    \right\rangle
+    \rightsquigarrow
+    \left\langle
+    P,
+    \left\langle
+    V \cup \{v_i\},
+    E \cup \{(v_m,v_i)\},
+    \tau[v_i \mapsto \mathsf{Ingredient}(v_m)],
+    \lambda[v_i \mapsto y],
+    \iota[y \mapsto v_i]
+    \right\rangle
+    \right\rangle
+    }
+    \]
+    
+    \[
+    \inference[\text{Pour-In-Prov}]
+    {
+    \iota(y)=v_1
+    \qquad
+    \iota(z)=v_2
+    \qquad
+    \tau(v_1)=\mathsf{Container}(v_m)
+    \qquad
+    \tau(v_2)=\mathsf{Container}(v_m)
+    \qquad
+    v_c \notin V
+    }
+    {
+    \left\langle
+    c \leftarrow \text{\texttt{pour}}(y,z) \;;\; P,
+    \langle V,E,\tau,\lambda,\iota\rangle
+    \right\rangle
+    \rightsquigarrow
+    \left\langle
+    P,
+    \left\langle
+    V \cup \{v_c\},
+    E \cup \{(v_1,v_c),(v_2,v_c)\},
+    \tau[v_c \mapsto \mathsf{Container}(v_m)],
+    \lambda[v_c \mapsto c],
+    \iota[c \mapsto v_c]
+    \right\rangle
+    \right\rangle
+    }
+    \]
+    
+    \[
+    \inference[\text{Pour-Out-Prov}]
+    {
+    \iota(y)=v_c
+    \qquad
+    \iota(x)=v_m
+    \qquad
+    \tau(v_m)=\mathsf{Mixture}
+    \qquad
+    v_o \notin V
+    }
+    {
+    \left\langle
+    z \leftarrow \text{\texttt{pour-out}}(y,x) \;;\; P,
+    \langle V,E,\tau,\lambda,\iota\rangle
+    \right\rangle
+    \rightsquigarrow
+    \left\langle
+    P,
+    \left\langle
+    V \cup \{v_o\},
+    E \cup \{(v_c,v_o),(v_m,v_o)\},
+    \tau[v_o \mapsto \mathsf{Container}(v_m)],
+    \lambda[v_o \mapsto z],
+    \iota[z \mapsto v_o]
+    \right\rangle
+    \right\rangle
+    }
+    \]
+\end{landscape}
+
+
+\section{Concrete Syntax for Implementation}
+\label{conc-synt}
 \begin{verbatim}
 <stmt>      ::= <skip_stmt> 
             | ( new-mixture <id> )
@@ -315,7 +494,7 @@ Up to our knowledge, KumoLang is the first formal verification framework designe
 <id>        matches any valid identifier parsed by `parse_ident`
 \end{verbatim}
 
-\subsection{Proofs}
+\section{Proofs}
 \begin{theorem}[Basque Preservation]
 If a program $P$ evaluates to a verified Basque cheesecake
 artifact, then no execution trace of $P$ contains a crust

@@ -8,18 +8,19 @@
 
 use std::collections::HashMap;
 
+use serde::Serialize;
 use sexp::{Atom, Sexp};
 
 use crate::{ast::*, dag::*};
 
 // MARK: Store
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub enum Value {
     Mixture(u64),
     Container(Vec<u64>),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Store {
     bindings: HashMap<String, Value>,
     next_id: u64,
@@ -148,7 +149,7 @@ pub fn parse_program(input: &str) -> Result<Program, String> {
 }
 
 // MARK: Result
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct VerificationResult {
     pub passed: bool,
     pub errors: Vec<String>,
@@ -179,32 +180,42 @@ pub fn verify(program: &Program) -> VerificationResult {
     let mut errors: Vec<String> = Vec::new();
 
     for stmt in &program.0 {
-        if let Err(msg) = eval_stmt(stmt, &mut store) {
+        if let Err(msg) = eval_stmt(stmt, &mut store, &mut graph) {
             errors.push(msg);
         }
     }
 
     VerificationResult {
         passed: errors.is_empty(),
-        graph: todo!(),
+        graph,
         errors,
         store,
     }
 }
 
-fn eval_stmt(stmt: &Stmt, store: &mut Store) -> Result<(), String> {
+fn eval_stmt(stmt: &Stmt, store: &mut Store, graph: &mut RecipeDAG) -> Result<(), String> {
     match stmt {
         Stmt::Skip => Ok(()),
 
         Stmt::NewMixture(name) => {
             let mid = store.fresh_mixture();
             store.set(name.clone(), Value::Mixture(mid));
+            graph.declareMixture(name);
             Ok(())
         }
 
         Stmt::Prep(source, dest) => match store.get(source) {
             Some(Value::Mixture(m)) => {
                 store.set(dest.clone(), Value::Container(vec![*m]));
+
+                // Graph extraction: Container(dest) ← Ingredient(source) ← Mixture(source)
+                let cont_id = graph.declareContainer(dest);
+                let ing_id = graph.declareIngredient(source);
+                graph.addEdge(cont_id, ing_id);
+                if let Some(mix_id) = graph.getNodeId(source) {
+                    graph.addEdge(ing_id, mix_id);
+                }
+
                 Ok(())
             }
             Some(Value::Container(_)) => Err(format!(
@@ -228,6 +239,16 @@ fn eval_stmt(stmt: &Stmt, store: &mut Store) -> Result<(), String> {
                 }
                 let combined: Vec<u64> = c1.iter().chain(c2.iter()).copied().collect();
                 store.set(dest.clone(), Value::Container(combined));
+
+                // Graph extraction: Container(dest) ← Container(src1), Container(dest) ← Container(src2)
+                let cont_id = graph.declareContainer(dest);
+                if let Some(id1) = graph.getNodeId(src1) {
+                    graph.addEdge(cont_id, id1);
+                }
+                if let Some(id2) = graph.getNodeId(src2) {
+                    graph.addEdge(cont_id, id2);
+                }
+
                 Ok(())
             }
             (Some(Value::Mixture(_)), _) => Err(format!(
@@ -261,6 +282,20 @@ fn eval_stmt(stmt: &Stmt, store: &mut Store) -> Result<(), String> {
                 (Some("container"), _, Some(m_target)) => {
                     store.set(container.clone(), Value::Container(Vec::new()));
                     store.set(dest.clone(), Value::Container(vec![m_target]));
+
+                    // Graph extraction:
+                    //   Container(dest) ← Container(source_container)
+                    //   Container(dest) ← Ingredient(target) ← Mixture(target)
+                    let cont_id = graph.declareContainer(dest);
+                    if let Some(src_container_id) = graph.getNodeId(container) {
+                        graph.addEdge(cont_id, src_container_id);
+                    }
+                    let ing_id = graph.declareIngredient(target);
+                    graph.addEdge(cont_id, ing_id);
+                    if let Some(mix_id) = graph.getNodeId(target) {
+                        graph.addEdge(ing_id, mix_id);
+                    }
+
                     Ok(())
                 }
                 (Some("mixture"), _, _) => Err(format!(

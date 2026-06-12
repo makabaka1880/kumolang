@@ -7,11 +7,20 @@
  */
 export function verify_kumolang(source: string): string;
 
+/**
+ * Verify a KumoLang program and return the full VerificationResult
+ * as pretty-printed JSON, including the provenance graph (nodes + edges).
+ */
+export function verify_kumolang_json(source: string): string;
+
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
     readonly memory: WebAssembly.Memory;
     readonly verify_kumolang: (a: number, b: number) => [number, number];
+    readonly verify_kumolang_json: (a: number, b: number) => [number, number];
+    readonly __wbindgen_exn_store: (a: number) => void;
+    readonly __externref_table_alloc: () => number;
     readonly __wbindgen_externrefs: WebAssembly.Table;
     readonly __wbindgen_malloc: (a: number, b: number) => number;
     readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
