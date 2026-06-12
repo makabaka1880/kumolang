@@ -285,8 +285,8 @@ function renderGraph(graph) {
         const f = fillMap[item.kind];
         const s = strokeMap[item.kind];
         svg += `<rect x="${legendX}" y="${legendY - 8}" width="12" height="12" rx="2" class="node-rect ${item.kind}" fill="${f}" stroke="${s}"/>`;
-        svg += `<text x="${legendX + 16}" y="${legendY}" class="graph-legend">${item.label}</text>`;
-        legendX += 80;
+        svg += `<text x="${legendX + 18}" y="${legendY}" class="graph-legend">${item.label}</text>`;
+        legendX += 90;
     }
 
     svg += '</svg>';
