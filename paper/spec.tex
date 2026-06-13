@@ -106,27 +106,27 @@ With the store model in place, we now define the evaluation relation that govern
 
 \[
 \inference[\text{Stasis}]{}
-{\langle \text{\texttt{skip}} \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma \rangle}
+{\langle \text{\texttt{skip}} ; P \;,\; \sigma \rangle \nrightarrow }
 \]
 
 \[
 \inference[\text{Domain-Alloc}]{m \notin \text{img}(\sigma)}
-{\langle x \leftarrow \text{\texttt{new-mixture}}() \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[x \leftarrow m] \rangle}
+{\langle x \leftarrow \text{\texttt{new-mixture}}() ; P \;,\; \sigma \rangle \to \langle P \;,\; \sigma[x \leftarrow m] \rangle}
 \]
 
 \[
 \inference[\text{Ing-Prep}]{\sigma(x) = m}
-{\langle y \leftarrow \text{\texttt{prep}}(x) \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[y \leftarrow [m]] \rangle}
+{\langle y \leftarrow \text{\texttt{prep}}(x) ; P \;,\; \sigma \rangle \to \langle P \;,\; \sigma[y \leftarrow [m]] \rangle}
 \]
 
 \[
 \inference[\text{Pour-In}]{\sigma(y) = L_1 \in \mathcal{L}_m \quad \sigma(z) = L_2 \in \mathcal{L}_m}
-{\langle y \leftarrow \text{\texttt{pour}}(y, z) \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[y \leftarrow L_1 \mathbin{+\mkern-10mu+} L_2] \rangle}
+{\langle y \leftarrow \text{\texttt{pour}}(y, z) ; P \;,\; \sigma \rangle \to \langle P \;,\; \sigma[y \leftarrow L_1 \mathbin{+\mkern-10mu+} L_2] \rangle}
 \]
 
 \[
 \inference[\text{Pour-Out}]{\sigma(y) = L_1 \in \mathcal{L}_m \quad \sigma(x) = m_{\text{target}}}
-{\langle z \leftarrow \text{\texttt{pour-out}}(y, x) \;;\; P, \; \sigma \rangle \to \langle P, \; \sigma[y \leftarrow [], \; z \leftarrow [m_{\text{target}}]] \rangle}
+{\langle z \leftarrow \text{\texttt{pour-out}}(y, x) ; P \;,\; \sigma \rangle \to \langle P \;,\; \sigma[y \leftarrow [], \; z \leftarrow [m_{\text{target}}]] \rangle}
 \]
 
 \section{The Kumo Verification Engine}
@@ -159,7 +159,7 @@ maps identifiers to their most recent provenance vertex.
 The provenance extraction relation
 
 \[
-\langle P,G\rangle \rightsquigarrow \langle P',G'\rangle
+\langle P,G\rangle \rightsquigarrow \langle P',G'\rangle \cup G'
 \]
 
 is evaluated in parallel with the operational semantics. The complete algorithm is provided in the appendix \ref{prov-gen}.
@@ -352,17 +352,14 @@ To our knowledge, KumoLang is the first formal verification framework designed s
     \inference[\text{Stasis-Prov}]{}
     {
     \langle
-    \text{\texttt{skip}} \;;\; P,
+    \text{\texttt{skip}} ; P \;,\;
     \langle V,E,\tau,\lambda,\iota\rangle
     \rangle
     \rightsquigarrow
-    \langle
-    P,
     \langle V,E,\tau,\lambda,\iota\rangle
-    \rangle
     }
     \]
-    
+
     \[
     \inference[\text{Domain-Alloc-Prov}]
     {
@@ -370,12 +367,12 @@ To our knowledge, KumoLang is the first formal verification framework designed s
     }
     {
     \left\langle
-    x \leftarrow \text{\texttt{new-mixture}}() \;;\; P,
+    x \leftarrow \text{\texttt{new-mixture}}() ; P \;,\;
     \langle V,E,\tau,\lambda,\iota\rangle
     \right\rangle
     \rightsquigarrow
     \left\langle
-    P,
+    P \;,\;
     \left\langle
     V \cup \{v\},
     E,
@@ -398,12 +395,12 @@ To our knowledge, KumoLang is the first formal verification framework designed s
     }
     {
     \left\langle
-    y \leftarrow \text{\texttt{prep}}(x) \;;\; P,
+    y \leftarrow \text{\texttt{prep}}(x) ; P \;,\;
     \langle V,E,\tau,\lambda,\iota\rangle
     \right\rangle
     \rightsquigarrow
     \left\langle
-    P,
+    P \;,\;
     \left\langle
     V \cup \{v_i\},
     E \cup \{(v_m,v_i)\},
@@ -430,12 +427,12 @@ To our knowledge, KumoLang is the first formal verification framework designed s
     }
     {
     \left\langle
-    c \leftarrow \text{\texttt{pour}}(y,z) \;;\; P,
+    c \leftarrow \text{\texttt{pour}}(y,z) ; P \;,\;
     \langle V,E,\tau,\lambda,\iota\rangle
     \right\rangle
     \rightsquigarrow
     \left\langle
-    P,
+    P \;,\;
     \left\langle
     V \cup \{v_c\},
     E \cup \{(v_1,v_c),(v_2,v_c)\},
@@ -460,12 +457,12 @@ To our knowledge, KumoLang is the first formal verification framework designed s
     }
     {
     \left\langle
-    z \leftarrow \text{\texttt{pour-out}}(y,x) \;;\; P,
+    z \leftarrow \text{\texttt{pour-out}}(y,x) ; P \;,\;
     \langle V,E,\tau,\lambda,\iota\rangle
     \right\rangle
     \rightsquigarrow
     \left\langle
-    P,
+    P \;,\;
     \left\langle
     V \cup \{v_o\},
     E \cup \{(v_c,v_o),(v_m,v_o)\},
