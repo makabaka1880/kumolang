@@ -1,0 +1,119 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Mixture DSL",
+    "scopeName": "source.mixture",
+    "patterns": [
+        {
+            "include": "#statements"
+        }
+    ],
+    "repository": {
+        "statements": {
+            "patterns": [
+                {
+                    "include": "#skip-statement"
+                },
+                {
+                    "include": "#new-mixture-statement"
+                },
+                {
+                    "include": "#prep-statement"
+                },
+                {
+                    "include": "#pour-statement"
+                },
+                {
+                    "include": "#pour-out-statement"
+                }
+            ]
+        },
+        "skip-statement": {
+            "patterns": [
+                {
+                    "match": "\\bskip\\b",
+                    "name": "keyword.control.mixture"
+                },
+                {
+                    "begin": "\\(",
+                    "beginCaptures": {
+                        "0": { "name": "punctuation.section.expression.begin.mixture" }
+                    },
+                    "end": "\\)",
+                    "endCaptures": {
+                        "0": { "name": "punctuation.section.expression.end.mixture" }
+                    },
+                    "patterns": [
+                        {
+                            "match": "\\bskip\\b",
+                            "name": "keyword.control.mixture"
+                        }
+                    ]
+                }
+            ]
+        },
+        "new-mixture-statement": {
+            "begin": "\\(\\s*(new-mixture)\\b",
+            "beginCaptures": {
+                "1": { "name": "keyword.other.mixture" }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": { "name": "punctuation.section.expression.end.mixture" }
+            },
+            "patterns": [
+                {
+                    "include": "#identifier"
+                }
+            ]
+        },
+        "prep-statement": {
+            "begin": "\\(\\s*(prep)\\b",
+            "beginCaptures": {
+                "1": { "name": "keyword.other.mixture" }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": { "name": "punctuation.section.expression.end.mixture" }
+            },
+            "patterns": [
+                {
+                    "include": "#identifier"
+                }
+            ]
+        },
+        "pour-statement": {
+            "begin": "\\(\\s*(pour)\\b",
+            "beginCaptures": {
+                "1": { "name": "keyword.other.mixture" }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": { "name": "punctuation.section.expression.end.mixture" }
+            },
+            "patterns": [
+                {
+                    "include": "#identifier"
+                }
+            ]
+        },
+        "pour-out-statement": {
+            "begin": "\\(\\s*(pour-out)\\b",
+            "beginCaptures": {
+                "1": { "name": "keyword.other.mixture" }
+            },
+            "end": "\\)",
+            "endCaptures": {
+                "0": { "name": "punctuation.section.expression.end.mixture" }
+            },
+            "patterns": [
+                {
+                    "include": "#identifier"
+                }
+            ]
+        },
+        "identifier": {
+            "match": "\\b[a-zA-Z_][a-zA-Z0-9_-]*\\b",
+            "name": "variable.other.mixture"
+        }
+    }
+}
